@@ -64,7 +64,7 @@ const FamilyConnectPage: React.FC = () => {
           </S.CardDesc>
         </S.Card>
 
-        <S.Card onClick={() => navigate("/conversation", { state: { members } })}>
+        <S.Card onClick={() => navigate("/cards")}>
           <S.CardIcon>💬</S.CardIcon>
           <S.CardTitle>대화 시작 카드</S.CardTitle>
           <S.CardDesc>
@@ -73,7 +73,7 @@ const FamilyConnectPage: React.FC = () => {
           </S.CardDesc>
         </S.Card>
 
-        <S.Card onClick={() => navigate("/timeline", { state: { members } })}>
+        <S.Card onClick={() => navigate("/conversation", { state: { members } })}>
           <S.CardIcon>📸</S.CardIcon>
           <S.CardTitle>추억 타임라인</S.CardTitle>
           <S.CardDesc>
