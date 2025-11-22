@@ -1,14 +1,31 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import * as S from "./index.styles.tsx";
+
+interface Member {
+  id: number;
+  name: string;
+  role: string;
+  avatar: string;
+  tastes?: Array<{ icon: string; text: string }>;
+  selectedActivities?: Array<{ id: string; label: string; icon: string }>;
+  dayNumber?: number;
+  dayOfWeek?: string;
+}
 
 const MainPage = () => {
   const navigate = useNavigate();
-  const [familyCode, setFamilyCode] = useState("76EVBPSH");
+  const location = useLocation();
+  const { members } = (location.state as { members?: Member[] }) || {};
+  
+  const [familyCode, setFamilyCode] = useState(() => {
+    const stored = localStorage.getItem('familyCode');
+    return stored || "76EVBPSH";
+  });
   const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // 새 코드 생성
+  // 새 코드 생성 (8자리로 생성하지만 사용자는 2자리 이상 입력 가능)
   const handleGenerateCode = () => {
     if (isGenerating) return;
     setIsGenerating(true);
@@ -16,10 +33,12 @@ const MainPage = () => {
     setTimeout(() => {
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
       let newCode = "";
+      // 8자리로 생성하지만, 사용자는 원하는 길이로 입력 가능
       for (let i = 0; i < 8; i++) {
         newCode += chars.charAt(Math.floor(Math.random() * chars.length));
       }
       setFamilyCode(newCode);
+      localStorage.setItem('familyCode', newCode);
       setIsGenerating(false);
     }, 400);
   };
@@ -100,8 +119,11 @@ const handleKakaoShare = () => {
         <S.CodeInputRow>
   <S.Input
     value={familyCode}
-    maxLength={8}
-    onChange={(e) => setFamilyCode(e.target.value.toUpperCase())}
+    onChange={(e) => {
+      const newCode = e.target.value.toUpperCase();
+      setFamilyCode(newCode);
+      localStorage.setItem('familyCode', newCode);
+    }}
   />
 
   <S.ButtonGroup>
@@ -145,7 +167,10 @@ const handleKakaoShare = () => {
       </S.Card>
 
       {/* 다음 버튼 */}
-<S.NextButton onClick={() => navigate("/profile", { state: { members: [] } })}>
+<S.NextButton onClick={() => {
+  // setup3에서 받은 members를 profile로 전달
+  navigate("/profile", { state: { members: members || [] } });
+}}>
   다음으로 진행 →
 </S.NextButton>
 

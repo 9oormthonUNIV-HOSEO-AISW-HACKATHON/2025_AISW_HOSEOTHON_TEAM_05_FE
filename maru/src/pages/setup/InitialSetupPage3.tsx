@@ -73,7 +73,8 @@ const InitialSetupPage3: React.FC = () => {
     } else {
       // localStorage에 가족 구성원 데이터 저장
       localStorage.setItem('familyMembers', JSON.stringify(processedMembers));
-      navigate("/profile", { state: { members: processedMembers } });
+      // 가족 코드 페이지로 이동
+      navigate("/main", { state: { members: processedMembers } });
     }
   };
 

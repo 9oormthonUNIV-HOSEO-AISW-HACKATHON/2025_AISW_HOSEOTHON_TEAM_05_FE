@@ -103,15 +103,34 @@ export const IntroSubtitle = styled.p`
 `;
 
 /* 질문 카드 */
-export const CardSection = styled.section`
-    background: #fff7ff;
+export const CardSection = styled.section<{ $isCommon?: boolean }>`
+    background: ${({ $isCommon }) => ($isCommon ? '#fff0f8' : '#fff7ff')};
     border-radius: 20px;
-    border: 1px solid #f6dfff;
+    border: ${({ $isCommon }) => 
+        $isCommon ? '2px solid #ff6ac4' : '1px solid #f6dfff'};
     padding: 28px 24px;
     display: flex;
     flex-direction: column;
     align-items: stretch;
     gap: 18px;
+    box-shadow: ${({ $isCommon }) => 
+        $isCommon ? '0 8px 24px rgba(255, 106, 196, 0.2)' : 'none'};
+    position: relative;
+    
+    ${({ $isCommon }) => $isCommon && `
+        &::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #ff6ac4, #b96bff);
+            z-index: -1;
+            opacity: 0.3;
+        }
+    `}
 `;
 
 export const CardHeader = styled.div`
@@ -131,19 +150,33 @@ export const QuestionMeta = styled.div`
     display: flex;
     align-items: center;
     gap: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+`;
+
+export const CommonBadge = styled.span`
+    background: linear-gradient(135deg, #ff6ac4, #b96bff);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(255, 106, 196, 0.3);
 `;
 
 export const QuestionIndex = styled.span``;
 
-export const QuestionText = styled.p`
-    font-size: 14px;
+export const QuestionText = styled.p<{ $isCommon?: boolean }>`
+    font-size: ${({ $isCommon }) => ($isCommon ? '16px' : '14px')};
     text-align: center;
-    color: #333;
+    color: ${({ $isCommon }) => ($isCommon ? '#8b1a5c' : '#333')};
     margin: 12px 0 0 0;
     min-height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-weight: ${({ $isCommon }) => ($isCommon ? '600' : '400')};
+    line-height: 1.6;
 `;
 
 export const ShuffleButton = styled.button`
