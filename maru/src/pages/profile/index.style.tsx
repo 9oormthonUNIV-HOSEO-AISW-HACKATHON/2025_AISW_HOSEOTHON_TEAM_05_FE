@@ -1,13 +1,17 @@
-import styled from '@emotion/styled';
+// src/pages/profile/family_connect_styles.tsx
+import styled from "@emotion/styled";
 
-/* 전체 페이지 */
+/* ============================= */
+/*          기본 페이지 스타일         */
+/* ============================= */
+
 export const PageWrapper = styled.div`
   min-height: 100vh;
   background: linear-gradient(135deg, #fff1f8 0%, #fdeaff 50%, #fff3e8 100%);
   padding: 32px 24px;
 `;
 
-/* 상단 프로필 영역 */
+/* HEADER */
 export const Header = styled.div`
   display: flex;
   justify-content: space-between;
@@ -35,7 +39,6 @@ export const ProfileName = styled.div`
   font-weight: 600;
 `;
 
-/* 헤더 버튼 */
 export const HeaderButtons = styled.div`
   display: flex;
   gap: 10px;
@@ -48,7 +51,7 @@ export const SmallButton = styled.button`
   border-radius: 8px;
   font-size: 13px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: 0.2s;
 
   &:hover {
     background: #f5f5ff;
@@ -56,7 +59,7 @@ export const SmallButton = styled.button`
   }
 `;
 
-/* 중심 영역 */
+/* CENTER */
 export const CenterBox = styled.div`
   text-align: center;
   margin-bottom: 40px;
@@ -79,7 +82,7 @@ export const MainDesc = styled.p`
   line-height: 1.6;
 `;
 
-/* 기능 카드 리스트 */
+/* CARD LIST */
 export const CardList = styled.div`
   display: flex;
   flex-direction: column;
@@ -91,6 +94,12 @@ export const Card = styled.div`
   border-radius: 14px;
   padding: 20px 22px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+  cursor: pointer;
+  transition: 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
 `;
 
 export const CardIcon = styled.div`
@@ -108,4 +117,220 @@ export const CardDesc = styled.div`
   font-size: 14px;
   color: #666;
   line-height: 1.5;
+`;
+
+/* ============================= */
+/*          POPUP BASE STYLE         */
+/* ============================= */
+
+export const PopupOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+`;
+
+export const PopupBox = styled.div`
+  width: 600px;
+  max-width: 90%;
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+`;
+
+export const PopupTitle = styled.h2`
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 24px;
+`;
+
+export const PopupGrid = styled.div`
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 20px;
+`;
+
+export const PopupCard = styled.div<{ selected: boolean }>`
+  width: 150px;
+  padding: 20px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ffb4e6 0%, #bb85ff 100%);
+  text-align: center;
+  color: white;
+  position: relative;
+  cursor: pointer;
+  transition: 0.2s;
+
+  transform: ${({ selected }) => (selected ? "scale(1.06)" : "scale(1)")};
+
+  &:hover {
+    transform: scale(1.06);
+  }
+`;
+
+export const PopupAvatar = styled.div`
+  font-size: 45px;
+  margin-bottom: 10px;
+`;
+
+export const PopupName = styled.div`
+  font-size: 16px;
+  font-weight: 600;
+`;
+
+export const PopupRole = styled.div`
+  font-size: 13px;
+  opacity: 0.9;
+  margin-top: 4px;
+`;
+
+export const SelectCheck = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 20px;
+`;
+
+export const PopupClose = styled.button`
+  margin-top: 15px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: #f3f3ff;
+  font-size: 15px;
+  cursor: pointer;
+
+  &:hover {
+    background: #e0e1ff;
+  }
+`;
+
+/* ============================= */
+/*         PROFILE EDIT POPUP        */
+/* ============================= */
+
+export const EditPopup = styled.div`
+  width: 600px;
+  max-width: 90%;
+  background: white;
+  padding: 30px 28px;
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+`;
+
+export const EditAvatarBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+  cursor: pointer;
+`;
+
+export const EditAvatar = styled.div`
+  font-size: 68px;
+  width: 95px;
+  height: 95px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ffb4e6 0%, #bb85ff 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+export const EditInput = styled.input`
+  width: 100%;
+  padding: 14px 15px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  margin-bottom: 18px;
+  font-size: 15px;
+`;
+
+export const RoleGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 26px;
+`;
+
+export const RoleButton = styled.button<{ active: boolean }>`
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid ${({ active }) => (active ? "#bb85ff" : "#ddd")};
+  background: ${({ active }) => (active ? "#f5e7ff" : "white")};
+  cursor: pointer;
+  transition: 0.2s;
+
+  &:hover {
+    border-color: #bb85ff;
+  }
+`;
+
+export const EditButtonRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+`;
+
+export const DeleteButton = styled.button`
+  flex: 1;
+  padding: 14px;
+  background: #ffe2e2;
+  border: none;
+  color: #d9534f;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+`;
+
+export const SaveButton = styled.button`
+  flex: 1;
+  padding: 14px;
+  background: linear-gradient(90deg, #ff6b9d, #c084fc);
+  border: none;
+  color: white;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+`;
+
+/* ============================= */
+/*         AVATAR SELECT POPUP       */
+/* ============================= */
+
+export const AvatarPopup = styled.div`
+  width: 500px;
+  max-width: 90%;
+  background: white;
+  padding: 30px;
+  border-radius: 18px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.17);
+`;
+
+export const AvatarGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+`;
+
+export const AvatarItem = styled.div`
+  font-size: 42px;
+  background: #faf7ff;
+  padding: 18px 0;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: 0.15s;
+
+  &:hover {
+    background: #ebdfff;
+  }
 `;
