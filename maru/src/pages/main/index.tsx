@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import * as S from "./index.styles.tsx";
+import { useCreateFamilyCode, useVerifyFamilyCode } from "../../apis/hooks.ts";
 
 interface Member {
   id: number;
@@ -22,8 +25,9 @@ const MainPage = () => {
     const stored = localStorage.getItem('familyCode');
     return stored || "76EVBPSH";
   });
+  const [familyCode, setFamilyCode] = useState("");
   const [copied, setCopied] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [codeInput, setCodeInput] = useState("");
 
   // 새 코드 생성 (8자리로 생성하지만 사용자는 2자리 이상 입력 가능)
   const handleGenerateCode = () => {
@@ -41,10 +45,48 @@ const MainPage = () => {
       localStorage.setItem('familyCode', newCode);
       setIsGenerating(false);
     }, 400);
+  // API 훅
+  const createFamilyCodeMutation = useCreateFamilyCode();
+  const { data: verifyData, isLoading: isVerifying } = useVerifyFamilyCode(
+    codeInput.length === 8 ? codeInput : null
+  );
+
+  // 새 코드 생성 (서버 API 호출)
+  const handleGenerateCode = () => {
+    if (createFamilyCodeMutation.isPending) return;
+    
+    createFamilyCodeMutation.mutate(undefined, {
+      onSuccess: (data) => {
+        if (data.success && data.code) {
+          setFamilyCode(data.code);
+          setCodeInput(data.code);
+        }
+      },
+      onError: (error) => {
+        console.error("가족 코드 생성 실패:", error);
+        alert("가족 코드 생성에 실패했습니다. 다시 시도해주세요.");
+      },
+    });
   };
+
+  // 코드 입력 시 검증
+  useEffect(() => {
+    if (codeInput.length === 8 && verifyData) {
+      if (verifyData.success) {
+        setFamilyCode(codeInput);
+      } else {
+        // 유효하지 않은 코드인 경우 (사용자가 직접 입력한 경우)
+        // 에러 메시지는 표시하지 않고 그냥 무시
+      }
+    }
+  }, [codeInput, verifyData]);
 
   // 코드 복사
   const handleCopy = () => {
+    if (!familyCode) {
+      alert("먼저 가족 코드를 생성하거나 입력해주세요.");
+      return;
+    }
     navigator.clipboard.writeText(familyCode).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1200);
@@ -105,13 +147,14 @@ const handleKakaoShare = () => {
       <S.Card>
         <S.CodeLabel>가족 코드
               <S.ActionButton
-      disabled={isGenerating}
+      disabled={createFamilyCodeMutation.isPending}
       onClick={handleGenerateCode}
-      className={isGenerating ? "disabled" : ""}
+      className={createFamilyCodeMutation.isPending ? "disabled" : ""}
     >
       <svg width="16" height="16" fill="none" stroke="currentColor">
         <path d="M8 2v6m0 6a6 6 0 100-12 6 6 0 000 12z" />
-      </svg>새로 생성
+      </svg>
+      {createFamilyCodeMutation.isPending ? "생성 중..." : "새로 생성"}
     </S.ActionButton>
         </S.CodeLabel>
 
@@ -124,6 +167,17 @@ const handleKakaoShare = () => {
       setFamilyCode(newCode);
       localStorage.setItem('familyCode', newCode);
     }}
+    value={codeInput}
+    maxLength={8}
+    onChange={(e) => {
+      const upperCode = e.target.value.toUpperCase();
+      setCodeInput(upperCode);
+      if (upperCode.length === 8) {
+        setFamilyCode(upperCode);
+      }
+    }}
+    placeholder="가족 코드 입력"
+    disabled={createFamilyCodeMutation.isPending}
   />
 
   <S.ButtonGroup>
@@ -144,7 +198,9 @@ const handleKakaoShare = () => {
 
 
         <S.Hint>
-          원하는 코드를 직접 입력하거나 ‘새로 생성’ 버튼으로 자동 생성할 수 있습니다
+          {familyCode 
+            ? `✅ 가족 코드: ${familyCode} (${verifyData?.memberCount || 0}명 참여 중)`
+            : "원하는 코드를 직접 입력하거나 '새로 생성' 버튼으로 자동 생성할 수 있습니다"}
         </S.Hint>
 
         {/* 카카오 공유 */}
@@ -170,6 +226,15 @@ const handleKakaoShare = () => {
 <S.NextButton onClick={() => {
   // setup3에서 받은 members를 profile로 전달
   navigate("/profile", { state: { members: members || [] } });
+  // localStorage에서 가족 구성원 데이터 가져오기
+  try {
+    const storedMembers = localStorage.getItem('familyMembers');
+    const members = storedMembers ? JSON.parse(storedMembers) : [];
+    navigate("/profile", { state: { members } });
+  } catch (e) {
+    console.error('Failed to get members from localStorage', e);
+    navigate("/profile", { state: { members: [] } });
+  }
 }}>
   다음으로 진행 →
 </S.NextButton>
