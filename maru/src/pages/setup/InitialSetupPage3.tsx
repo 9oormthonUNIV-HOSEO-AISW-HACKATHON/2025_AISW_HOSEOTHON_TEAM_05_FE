@@ -8,12 +8,17 @@ interface Activity {
   icon: string;
 }
 
+interface Taste {
+  icon: string;
+  text: string;
+}
+
 interface Member {
   id: number;
   name: string;
   role: string;
   avatar: string;
-  tastes?: string[];
+  tastes?: Taste[];
   selectedActivities?: Activity[];
   dayNumber?: number;
   dayOfWeek?: string;
@@ -43,8 +48,8 @@ const InitialSetupPage3: React.FC = () => {
     selectedActivities:
       m.tastes?.map((t, i) => ({
         id: `t${i}`,
-        label: t,
-        icon: "✨",
+        label: t.text,
+        icon: t.icon,
       })) ?? [],
     dayNumber: idx + 1,
     dayOfWeek: dayNames[idx % 7],

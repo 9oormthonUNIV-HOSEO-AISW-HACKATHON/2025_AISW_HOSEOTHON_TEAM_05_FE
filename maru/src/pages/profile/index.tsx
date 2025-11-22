@@ -106,7 +106,7 @@ const FamilyConnectPage: React.FC = () => {
 
       {/* 기능 카드 리스트 */}
       <S.CardList>
-        <S.Card onClick={() => navigate("/common-taste", { state: { members } })}>
+        <S.Card onClick={() => navigate("/interests", { state: { members, currentMemberId: currentMember.id } })}>
           <S.CardIcon>💖</S.CardIcon>
           <S.CardTitle>공통 취향 발견</S.CardTitle>
           <S.CardDesc>가족 구성원의 취향을 분석해 공통 관심사 TOP3 제공</S.CardDesc>
