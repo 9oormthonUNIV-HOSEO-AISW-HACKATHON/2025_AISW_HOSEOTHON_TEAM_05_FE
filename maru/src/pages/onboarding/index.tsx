@@ -8,7 +8,7 @@ const OnBoarding = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigate('/main', { replace: true });
+      navigate('/setup1', { replace: true });
     }, 4000);
 
     return () => clearTimeout(timer);
