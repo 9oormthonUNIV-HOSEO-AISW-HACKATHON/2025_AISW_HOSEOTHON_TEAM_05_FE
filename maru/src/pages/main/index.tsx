@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import * as S from "./index.styles.tsx";
 
 const MainPage = () => {
+  const navigate = useNavigate();
   const [familyCode, setFamilyCode] = useState("76EVBPSH");
   const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -143,7 +145,11 @@ const handleKakaoShare = () => {
       </S.Card>
 
       {/* 다음 버튼 */}
-      <S.NextButton>다음으로 진행 →</S.NextButton>
+<S.NextButton onClick={() => navigate("/profile", { state: { members: [] } })}>
+  다음으로 진행 →
+</S.NextButton>
+
+
 
       <S.BottomText>
         나중에 홈 화면에서도 가족 코드를 확인하고 공유할 수 있습니다

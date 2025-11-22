@@ -6,6 +6,8 @@ const Main = lazy(() => import('./pages/main/index.tsx'));
 const OnBoarding = lazy(() => import('./pages/onboarding/index.tsx'));
 const Setup1 = lazy(() => import('./pages/setup/InitialSetupPage1.tsx'));
 const Setup2 = lazy(() => import('./pages/setup/InitialSetupPage2.tsx'));
+const Setup3 = lazy(() => import('./pages/setup/InitialSetupPage3.tsx'));
+const Profile = lazy(() => import('./pages/profile/index.tsx'));
 
 const withSuspense = (element: React.ReactNode) => (
   <Suspense fallback={<></>}>{element}</Suspense>
@@ -49,7 +51,27 @@ const router = createBrowserRouter([
         element: withSuspense(<Setup2 />),
       }
     ]
-  }
+  },
+  {
+    path: '/setup3',
+    element: <DefaultLayout />,
+    children: [
+      {
+        index: true,
+        element: withSuspense(<Setup3 />),
+      }
+    ]
+  },
+  {
+  path:'/profile',
+  element: withSuspense(<DefaultLayout />),
+  children:[
+    {
+      index:true,
+      element: withSuspense(<Profile/>),
+    }
+  ]
+}
 ]);
 
 export default router;

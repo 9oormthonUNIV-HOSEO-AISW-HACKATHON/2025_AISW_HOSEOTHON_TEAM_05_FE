@@ -7,7 +7,7 @@ interface Member {
   name: string;
   role: string;
   avatar: string;
-  tastes?: string[];
+  tastes?: string[]; // 구성원이 선택한 취향
 }
 
 const tasteOptions = [
@@ -29,13 +29,17 @@ const InitialSetupPage2: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  /** setup1 → navigate("/setup2", { state: { members } }) */
   const { members } = location.state as { members: Member[] };
 
   const [index, setIndex] = useState(0);
-  const [tastes, setTastes] = useState<string[]>([]);
+
+  /** 현재 구성원의 이전 선택이 있으면 복원 */
+  const [tastes, setTastes] = useState<string[]>(members[0].tastes ?? []);
 
   const current = members[index];
 
+  /** 취향 선택 토글 */
   const toggleTaste = (taste: string) => {
     setTastes((prev) =>
       prev.includes(taste)
@@ -44,29 +48,55 @@ const InitialSetupPage2: React.FC = () => {
     );
   };
 
+  /** 다음 구성원으로 이동 */
   const nextMember = () => {
+    // 현재 구성원에 취향 저장
     members[index].tastes = tastes;
 
-    if (index < members.length - 1) {
-      setIndex(index + 1);
-      setTastes([]);
-    } else {
-      console.log("전체 구성원 취향 설정 완료:", members);
-      navigate("/main", { state: { members } });
+    // 마지막 구성원이면 Setup3로 이동
+    if (index >= members.length - 1) {
+      navigate("/setup3", { state: { members } });
+      return;
     }
+
+    // 다음 구성원으로 이동
+    const nextIndex = index + 1;
+    setIndex(nextIndex);
+
+    // 다음 구성원 취향 복원
+    setTastes(members[nextIndex].tastes ?? []);
+  };
+
+  /** 뒤로가기 */
+  const handleBack = () => {
+    if (index === 0) return;
+
+    // 현재 구성원 데이터 저장
+    members[index].tastes = tastes;
+
+    const prev = index - 1;
+    setIndex(prev);
+
+    // 이전 구성원의 취향 복원
+    setTastes(members[prev].tastes ?? []);
   };
 
   return (
     <S.PageWrapper>
       <S.Container>
+
+        {/* 헤더 */}
         <S.Header>
-          <S.BackBtn disabled={index === 0} onClick={() => setIndex(index - 1)}>
+          <S.BackBtn disabled={index === 0} onClick={handleBack}>
             ←
           </S.BackBtn>
-          <S.Title>{index + 1} / {members.length}</S.Title>
+          <S.Title>
+            {index + 1} / {members.length}
+          </S.Title>
           <S.ProgressText />
         </S.Header>
 
+        {/* 프로필 영역 */}
         <S.ProfileBox>
           <S.Avatar>{current.avatar}</S.Avatar>
           <S.ProfileInfo>
@@ -75,6 +105,7 @@ const InitialSetupPage2: React.FC = () => {
           </S.ProfileInfo>
         </S.ProfileBox>
 
+        {/* 취향 선택 영역 */}
         <S.CategoryWrapper>
           <S.CategoryBlock>
             <S.CategoryHeader>
@@ -97,11 +128,13 @@ const InitialSetupPage2: React.FC = () => {
           </S.CategoryBlock>
         </S.CategoryWrapper>
 
+        {/* 버튼 */}
         <S.Footer>
           <S.NextBtn disabled={tastes.length < 1} onClick={nextMember}>
             {index < members.length - 1 ? "다음 구성원 →" : "완료 →"}
           </S.NextBtn>
         </S.Footer>
+
       </S.Container>
     </S.PageWrapper>
   );
