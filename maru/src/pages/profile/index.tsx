@@ -17,11 +17,38 @@ const FamilyConnectPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { members: initialMembers } = location.state as { members: Member[] };
+  const { members: initialMembers } = location.state as { members: Member[] } | undefined;
 
-  const [members, setMembers] = useState<Member[]>(initialMembers);
+  // localStorage에서 가족 구성원 데이터 가져오기 (state가 없을 경우)
+  const getMembersFromStorage = (): Member[] => {
+    try {
+      const stored = localStorage.getItem('familyMembers');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.error('Failed to parse members from localStorage', e);
+    }
+    return [];
+  };
 
-  const [currentMember, setCurrentMember] = useState<Member>(initialMembers[0]);
+  const membersFromState = initialMembers || [];
+  const membersFromStorage = getMembersFromStorage();
+  const finalInitialMembers = membersFromState.length > 0 ? membersFromState : membersFromStorage;
+
+  const [members, setMembers] = useState<Member[]>(finalInitialMembers);
+
+  // currentMember가 없으면 기본값 설정
+  const defaultMember: Member = {
+    id: 0,
+    name: "사용자",
+    role: "기타",
+    avatar: "👤",
+  };
+
+  const [currentMember, setCurrentMember] = useState<Member>(
+    finalInitialMembers.length > 0 ? finalInitialMembers[0] : defaultMember
+  );
   const [showSwitchPopup, setShowSwitchPopup] = useState(false);
   const [showEditSelectPopup, setShowEditSelectPopup] = useState(false);
   const [showEditPopup, setShowEditPopup] = useState(false);
