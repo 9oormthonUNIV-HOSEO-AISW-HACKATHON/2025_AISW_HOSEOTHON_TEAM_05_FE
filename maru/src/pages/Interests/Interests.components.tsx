@@ -101,10 +101,10 @@ export const MemberInterestCard: React.FC<{
     <S.MemberCardWrapper>
         <S.MemberHeader>
         <S.MemberInfo>
-            <S.MemberAvatar>{avatar}</S.MemberAvatar>
+            <S.MemberAvatar>{String(avatar || "")}</S.MemberAvatar>
             <div>
-            <S.MemberName>{name} {isEditable && "(나)"}</S.MemberName>
-            <S.MemberRelation>{relation}</S.MemberRelation>
+            <S.MemberName>{String(name || "")} {isEditable && "(나)"}</S.MemberName>
+            <S.MemberRelation>{String(relation || "")}</S.MemberRelation>
             </div>
         </S.MemberInfo>
 

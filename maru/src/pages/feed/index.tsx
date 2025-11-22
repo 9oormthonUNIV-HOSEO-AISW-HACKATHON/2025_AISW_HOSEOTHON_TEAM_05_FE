@@ -592,8 +592,8 @@ const FamilyMemoryFeed: React.FC = () => {
     const result: RecommendedMemory[] = [];
 
     if (hasCommonPreferences && topCommon.interest) {
-      // 공통 취향이 있는 경우: 공통 취향 (1) + 개별 취향 (2) = 총 3개
-      // 1. 공통 취향 추억 추가
+      // 공통 취향이 있는 경우: 공통 취향 기반 추천 (1개) + 개별 취향 기반 추천 (2개)
+      // 1. 공통 취향 추억 추가 (우선 표시)
       result.push(getRecommendedMemoriesByInterest(topCommon.interest, {
         taste: topCommon.interest,
         members: topCommon.members,
@@ -614,8 +614,8 @@ const FamilyMemoryFeed: React.FC = () => {
         result.push(getRecommendedMemoriesByInterest(interest));
       });
     } else {
-      // 공통 취향이 없는 경우: 개별 취향 (2) + 미선택 취향 (1) = 총 3개
-      // 1. 개별 취향 추억 추가 (최대 2개)
+      // 공통 취향이 없는 경우: 개별 취향 기반으로 3개 추천
+      // 모든 구성원의 개별 취향 수집
       const individualInterests = new Set<string>();
       interestMembers.forEach(member => {
         (member.interests || []).forEach(interest => {
@@ -623,16 +623,26 @@ const FamilyMemoryFeed: React.FC = () => {
         });
       });
 
-      const individualArray = Array.from(individualInterests).slice(0, 2);
-      individualArray.forEach(interest => {
-        result.push(getRecommendedMemoriesByInterest(interest));
-      });
-
-      // 2. 미선택 취향 추억 추가 (1개)
-      const selectedInterests = new Set(individualInterests);
-      const unselectedInterests = ALL_INTERESTS.filter(interest => !selectedInterests.has(interest));
-      if (unselectedInterests.length > 0) {
-        result.push(getRecommendedMemoriesByInterest(unselectedInterests[0]));
+      const individualArray = Array.from(individualInterests);
+      
+      // 개별 취향이 3개 이상이면 3개 선택, 부족하면 반복
+      if (individualArray.length >= 3) {
+        individualArray.slice(0, 3).forEach(interest => {
+          result.push(getRecommendedMemoriesByInterest(interest));
+        });
+      } else {
+        // 개별 취향이 부족하면 개별 취향 + 미선택 취향으로 채움
+        individualArray.forEach(interest => {
+          result.push(getRecommendedMemoriesByInterest(interest));
+        });
+        
+        // 부족한 만큼 미선택 취향으로 채움
+        const selectedInterests = new Set(individualInterests);
+        const unselectedInterests = ALL_INTERESTS.filter(interest => !selectedInterests.has(interest));
+        const needed = 3 - result.length;
+        for (let i = 0; i < needed && i < unselectedInterests.length; i++) {
+          result.push(getRecommendedMemoriesByInterest(unselectedInterests[i]));
+        }
       }
     }
 
