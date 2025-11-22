@@ -64,7 +64,7 @@ export const QuestionCard = ({
 
         <S.QuestionText $isCommon={isCommon}>{question}</S.QuestionText>
 
-        <S.ShuffleButton onClick={onShuffle}>🔄 다른 질문</S.ShuffleButton>
+        <S.ShuffleButton onClick={onShuffle}>🔄 다른 카드</S.ShuffleButton>
     </S.CardSection>
     );
 };
@@ -101,7 +101,7 @@ export const QuestionNavigation = ({
 export const FooterMessage: React.FC = () => {
     return (
     <S.FooterMessageWrapper>
-        💡 이 질문들로 가족과 대화를 시작해보세요.
+        💡 이 카드들로 가족과 대화를 시작해보세요.
         <br />
         함께한 순간은 추억 타임라인에 기록할 수 있어요!
     </S.FooterMessageWrapper>

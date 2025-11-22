@@ -17,7 +17,8 @@ const FamilyConnectPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { members: initialMembers } = location.state as { members: Member[] } | undefined;
+  const locationState = location.state as { members?: Member[] } | null | undefined;
+  const initialMembers = locationState?.members;
 
   // localStorage에서 가족 구성원 데이터 가져오기 (state가 없을 경우)
   const getMembersFromStorage = (): Member[] => {
@@ -158,7 +159,7 @@ const FamilyConnectPage: React.FC = () => {
         <S.Card onClick={() => navigate("/cards")}>
           <S.CardIcon>💬</S.CardIcon>
           <S.CardTitle>대화 시작 카드</S.CardTitle>
-          <S.CardDesc>공통 취향 기반 맞춤형 대화 질문 제공</S.CardDesc>
+          <S.CardDesc>공통 취향 기반 맞춤형 대화 카드 제공</S.CardDesc>
         </S.Card>
 
         <S.Card onClick={() => navigate("/conversation", { state: { members } })}>
