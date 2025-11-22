@@ -33,12 +33,44 @@ export const Header = styled.div`
   text-align: center;
 `;
 
+export const HeaderTop = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  position: relative;
+`;
+
 export const Title = styled.h1`
   font-size: 28px;
   font-weight: 600;
   color: #1a1a1a;
-  margin: 0 0 16px 0;
+  margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  flex: 1;
+  text-align: center;
+`;
+
+export const CodeButton = styled.button`
+  padding: 8px 16px;
+  background: #ff6b9d;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+
+  &:hover {
+    background: #ff5a8a;
+    transform: translateY(-50%) scale(1.05);
+  }
 `;
 
 export const Subtitle = styled.p`
@@ -236,4 +268,155 @@ export const NextBtn = styled.button<{ disabled?: boolean }>`
 
 export const ArrowIcon = styled.span`
   font-size: 16px;
+`;
+
+/* 가족 코드 입력 모달 */
+export const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+`;
+
+export const ModalContent = styled.div`
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+`;
+
+export const ModalHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e5e5;
+  position: relative;
+`;
+
+export const ModalTitle = styled.h2`
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+`;
+
+export const CloseButton = styled.button`
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  font-size: 28px;
+  color: #8b739e;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.15s ease-out;
+  line-height: 1;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+`;
+
+export const ModalBody = styled.div`
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+export const ModalLabel = styled.label`
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin: 0;
+`;
+
+export const ModalInput = styled.input`
+  padding: 14px 16px;
+  border: 2px solid #e5e5e5;
+  border-radius: 10px;
+  font-size: 16px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: border-color 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-align: center;
+  font-weight: 600;
+
+  &:focus {
+    outline: none;
+    border-color: #6366f1;
+  }
+
+  &::placeholder {
+    color: #999;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+`;
+
+export const ModalHint = styled.p`
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+`;
+
+export const ModalFooter = styled.div`
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #e5e5e5;
+`;
+
+export const ModalCancelButton = styled.button`
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  background: white;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  &:hover {
+    background: #f5f5f5;
+    border-color: #ccc;
+  }
+`;
+
+export const ModalSubmitButton = styled.button`
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #ff6b9d, #c084fc);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
 `;

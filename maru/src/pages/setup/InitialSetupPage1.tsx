@@ -23,6 +23,8 @@ const InitialSetupPage1: React.FC = () => {
     role: "",
     avatar: "",
   });
+  const [showCodeModal, setShowCodeModal] = useState(false);
+  const [familyCode, setFamilyCode] = useState("");
 
   const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
     setCurrentMember({ ...currentMember, name: e.target.value });
@@ -66,11 +68,30 @@ const InitialSetupPage1: React.FC = () => {
     });
   };
 
+  const handleCodeSubmit = () => {
+    const trimmedCode = familyCode.trim().toUpperCase();
+    if (!trimmedCode || trimmedCode.length < 2) {
+      alert("가족 코드는 최소 2자리 이상 입력해주세요.");
+      return;
+    }
+
+    // 가족 코드를 localStorage에 저장
+    localStorage.setItem('familyCode', trimmedCode);
+    setShowCodeModal(false);
+    setFamilyCode("");
+    alert("가족 코드가 저장되었습니다.");
+  };
+
   return (
     <S.PageWrapper>
       <S.Container>
         <S.Header>
-          <S.Title>가족 구성원 설정</S.Title>
+          <S.HeaderTop>
+            <S.Title>가족 구성원 설정</S.Title>
+            <S.CodeButton onClick={() => setShowCodeModal(true)}>
+              가족 코드 입력
+            </S.CodeButton>
+          </S.HeaderTop>
           <S.Subtitle>우리 가족 구성원을 추가해주세요 (최소 2명)</S.Subtitle>
         </S.Header>
 
@@ -139,6 +160,35 @@ const InitialSetupPage1: React.FC = () => {
           </S.NextBtn>
         </S.Footer>
       </S.Container>
+
+      {/* 가족 코드 입력 모달 */}
+      {showCodeModal && (
+        <S.ModalOverlay onClick={() => setShowCodeModal(false)}>
+          <S.ModalContent onClick={(e) => e.stopPropagation()}>
+            <S.ModalHeader>
+              <S.ModalTitle>가족 코드 입력</S.ModalTitle>
+              <S.CloseButton onClick={() => setShowCodeModal(false)}>×</S.CloseButton>
+            </S.ModalHeader>
+            <S.ModalBody>
+              <S.ModalLabel>가족 코드를 입력하세요</S.ModalLabel>
+              <S.ModalInput
+                type="text"
+                placeholder="가족 코드 입력"
+                value={familyCode}
+                onChange={(e) => setFamilyCode(e.target.value.toUpperCase())}
+              />
+            </S.ModalBody>
+            <S.ModalFooter>
+              <S.ModalCancelButton onClick={() => setShowCodeModal(false)}>
+                취소
+              </S.ModalCancelButton>
+              <S.ModalSubmitButton onClick={handleCodeSubmit}>
+                확인
+              </S.ModalSubmitButton>
+            </S.ModalFooter>
+          </S.ModalContent>
+        </S.ModalOverlay>
+      )}
     </S.PageWrapper>
   );
 };

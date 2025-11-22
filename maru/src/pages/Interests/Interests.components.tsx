@@ -73,7 +73,6 @@ export const NextStepSection: React.FC<{
     onOpenCards: () => void;
     onOpenRecord: () => void;
 }> = ({ onOpenCards, onOpenRecord }) => {
-    const navigate = useNavigate();
     return (
     <S.NextStepSection>
         <S.NextButton onClick={onOpenCards}>
@@ -81,7 +80,7 @@ export const NextStepSection: React.FC<{
         <span>공통 취향으로 대화 질문 받기</span>
         </S.NextButton>
 
-        <S.NextButtonSecondary onClick={() => navigate('/추억 타임라인')}>
+        <S.NextButtonSecondary onClick={onOpenRecord}>
         ❤️ 추억 기록하기
         <span>함께한 순간을 타임라인에 남기기</span>
         </S.NextButtonSecondary>

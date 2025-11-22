@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { findTopCommonInterest, type MemberInterests } from '../Interests/utils/findInterests.ts';
 import * as S from './index.styles.tsx';
 
 interface Challenge {
@@ -71,6 +73,8 @@ interface RecommendedMemory {
 }
 
 const FamilyMemoryFeed: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<'all' | 'family' | 'popular'>('all');
   const [isRecommendModalOpen, setIsRecommendModalOpen] = useState(false);
   const [isAddMemoryModalOpen, setIsAddMemoryModalOpen] = useState(false);
@@ -94,51 +98,65 @@ const FamilyMemoryFeed: React.FC = () => {
     imagePreview: null as string | null,
   });
   
-  // 가족 구성원 데이터 가져오기
+  // Interests 데이터 가져오기 (location state 또는 localStorage)
+  const [interestMembers, setInterestMembers] = useState<MemberInterests[]>([]);
+  
   useEffect(() => {
-    // localStorage에서 가족 구성원 데이터 가져오기
-    const storedMembers = localStorage.getItem('familyMembers');
-    if (storedMembers) {
-      try {
-        const parsed = JSON.parse(storedMembers);
-        setMembers(parsed);
-      } catch (e) {
-        console.error('Failed to parse members from localStorage', e);
+    // location state에서 Interests 데이터 가져오기
+    const locationState = location.state as {
+      members?: MemberInterests[];
+      topCommon?: { interest: string | null; count: number; members: MemberInterests[] };
+      hasCommon?: boolean;
+    } | null;
+
+    if (locationState?.members) {
+      setInterestMembers(locationState.members);
+    } else {
+      // localStorage에서 가족 구성원 데이터 가져오기 (fallback)
+      const storedMembers = localStorage.getItem('familyMembers');
+      if (storedMembers) {
+        try {
+          const parsed = JSON.parse(storedMembers);
+          setMembers(parsed);
+          // tastes를 interests로 변환
+          const converted: MemberInterests[] = parsed.map((m: Member) => ({
+            id: m.id,
+            name: m.name,
+            relation: m.role,
+            avatar: m.avatar,
+            interests: m.tastes || [],
+          }));
+          setInterestMembers(converted);
+        } catch (e) {
+          console.error('Failed to parse members from localStorage', e);
+        }
       }
     }
-  }, []);
+  }, [location]);
 
-  // 공통 취향 계산
-  const commonPreferences = useMemo(() => {
-    if (members.length < 2) return [];
-    
-    // 모든 구성원의 취향 수집
-    const allTastes: { [key: string]: Member[] } = {};
-    
-    members.forEach(member => {
-      member.tastes?.forEach(taste => {
-        if (!allTastes[taste]) {
-          allTastes[taste] = [];
-        }
-        allTastes[taste].push(member);
-      });
-    });
-    
-    // 모든 구성원이 공통으로 선택한 취향 찾기
-    const common: CommonPreference[] = [];
-    Object.keys(allTastes).forEach(taste => {
-      if (allTastes[taste].length === members.length) {
-        common.push({
-          taste,
-          members: allTastes[taste]
-        });
-      }
-    });
-    
-    return common;
-  }, [members]);
+  // 공통 취향 계산 (Interests 데이터 사용)
+  const topCommon = useMemo(() => {
+    if (interestMembers.length < 2) {
+      return { interest: null, members: [], count: 0 };
+    }
+    return findTopCommonInterest(interestMembers);
+  }, [interestMembers]);
 
-  const hasCommonPreferences = commonPreferences.length > 0;
+  const hasCommonPreferences = topCommon.interest !== null;
+  
+  // 모든 가능한 취향 목록
+  const ALL_INTERESTS = [
+    "영화/드라마/연극 감상",
+    "음악 듣기",
+    "요리하기",
+    "엑티비티한 활동",
+    "자기개발",
+    "게임",
+    "여행",
+    "구단 응원하기",
+    "공예/DIY",
+    "맛집 혹은 카페 탐방",
+  ];
   const [memories, setMemories] = useState<Memory[]>([]);
 
   const challenges: Challenge[] = [
@@ -199,7 +217,7 @@ const FamilyMemoryFeed: React.FC = () => {
   };
 
   const handleBack = () => {
-    console.log('뒤로 가기');
+    navigate('/profile');
   };
 
   const handleRecommendMemories = () => {
@@ -221,8 +239,18 @@ const FamilyMemoryFeed: React.FC = () => {
   };
 
   const handleSelectMemory = (memoryId: string) => {
-    console.log('추억 선택:', memoryId);
-    // 여기에 추억 선택 로직 추가
+    const memory = displayRecommendedMemories.find(m => m.id === memoryId);
+    if (memory) {
+      // 추천 추억 제목을 추억 추가 폼에 설정
+      setNewMemory(prev => ({
+        ...prev,
+        title: memory.title,
+        description: memory.description,
+        category: memory.tag || '공예/DIY',
+      }));
+      setIsRecommendModalOpen(false);
+      setIsAddMemoryModalOpen(true);
+    }
   };
 
   const handleMemoryClick = (memory: Memory) => {
@@ -392,36 +420,15 @@ const FamilyMemoryFeed: React.FC = () => {
     }
   };
 
-  // 취향별 추천 추억 매핑
-  const getRecommendedMemoriesByTaste = (taste: string, commonPref: CommonPreference): RecommendedMemory => {
-    const tasteMap: { [key: string]: Omit<RecommendedMemory, 'id' | 'commonPreference'> } = {
-      '가드닝': {
-        title: '식물 키우기',
-        description: '새로운 식물 함께 심기',
-        tag: '공예/DIY',
-        points: 40,
-        iconColor: 'linear-gradient(135deg, #66bb6a 0%, #4caf50 100%)',
-        icon: (
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17.5 12c0-1.38-.56-2.63-1.46-3.54L12 3.5 7.96 8.46c-.9.91-1.46 2.16-1.46 3.54 0 2.76 2.24 5 5 5s5-2.24 5-5zm-5-8.5l3.54 3.54c.39.39.39 1.02 0 1.41L12 12.5 7.96 8.46c-.39-.39-.39-1.02 0-1.41L11.5 3.5zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5 0-.79.26-1.52.7-2.11L12 4.5l2.8 5.39c.44.59.7 1.32.7 2.11 0 1.93-1.57 3.5-3.5 3.5z" />
-          </svg>
-        ),
-      },
-      '공예/DIY': {
-        title: '가드닝 데이',
-        description: '정원 꾸미고 관리하기',
-        tag: '공예/DIY',
-        points: 45,
-        iconColor: 'linear-gradient(135deg, #66bb6a 0%, #4caf50 100%)',
-        icon: (
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17.5 12c0-1.38-.56-2.63-1.46-3.54L12 3.5 7.96 8.46c-.9.91-1.46 2.16-1.46 3.54 0 2.76 2.24 5 5 5s5-2.24 5-5zm-5-8.5l3.54 3.54c.39.39.39 1.02 0 1.41L12 12.5 7.96 8.46c-.39-.39-.39-1.02 0-1.41L11.5 3.5zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5 0-.79.26-1.52.7-2.11L12 4.5l2.8 5.39c.44.59.7 1.32.7 2.11 0 1.93-1.57 3.5-3.5 3.5z" />
-          </svg>
-        ),
-      },
-      '영화 감상': {
+  // 취향별 추천 추억 매핑 (Interests 데이터 사용)
+  const getRecommendedMemoriesByInterest = (interest: string, commonPref?: { taste: string; members: MemberInterests[] }): RecommendedMemory => {
+    // commonPref가 있으면 CommonPreference 형식으로 변환
+    // 취향별 추천 추억 매핑
+    const interestMap: { [key: string]: Omit<RecommendedMemory, 'id' | 'commonPreference'> } = {
+      '영화/드라마/연극 감상': {
         title: '가족 영화 감상',
         description: '함께 영화 보고 감상평 나누기',
+        tag: '영화/드라마/연극 감상',
         points: 50,
         iconColor: 'linear-gradient(135deg, #9b7fff 0%, #7b5fff 100%)',
         icon: (
@@ -430,14 +437,15 @@ const FamilyMemoryFeed: React.FC = () => {
           </svg>
         ),
       },
-      '산책하기': {
-        title: '주말 산책',
-        description: '공원이나 산책로 함께 걷기',
+      '음악 듣기': {
+        title: '가족 음악 감상',
+        description: '함께 좋아하는 음악 듣고 이야기 나누기',
+        tag: '음악 듣기',
         points: 40,
-        iconColor: 'linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%)',
+        iconColor: 'linear-gradient(135deg, #ff6b9d 0%, #c084fc 100%)',
         icon: (
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7" />
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
           </svg>
         ),
       },
@@ -453,11 +461,96 @@ const FamilyMemoryFeed: React.FC = () => {
           </svg>
         ),
       },
+      '엑티비티한 활동': {
+        title: '가족 운동 데이',
+        description: '함께 운동하며 건강 챙기기',
+        tag: '엑티비티한 활동',
+        points: 40,
+        iconColor: 'linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%)',
+        icon: (
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7" />
+          </svg>
+        ),
+      },
+      '자기개발': {
+        title: '가족 독서 모임',
+        description: '함께 책 읽고 이야기 나누기',
+        tag: '자기개발',
+        points: 40,
+        iconColor: 'linear-gradient(135deg, #ab47bc 0%, #8e24aa 100%)',
+        icon: (
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z" />
+          </svg>
+        ),
+      },
+      '게임': {
+        title: '가족 게임 타임',
+        description: '함께 게임하며 즐거운 시간 보내기',
+        tag: '게임',
+        points: 40,
+        iconColor: 'linear-gradient(135deg, #66bb6a 0%, #4caf50 100%)',
+        icon: (
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M15.5 12c0 1.38-1.12 2.5-2.5 2.5S10 13.38 10 12s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5zm-2.5-8C11.57 4 9 6.57 9 9.5c0 1.47.83 2.75 2.05 3.41L12 22l.95-9.09C14.17 12.25 15 10.97 15 9.5 15 6.57 12.43 4 9.5 4zm0 1C11.98 5 14 7.02 14 9.5c0 .8-.35 1.51-.9 2L12 19.08 10.9 11.5c-.55-.49-.9-1.2-.9-2C10 7.02 12.02 5 14.5 5z" />
+          </svg>
+        ),
+      },
+      '여행': {
+        title: '가족 여행',
+        description: '함께 여행하며 추억 만들기',
+        tag: '여행',
+        points: 50,
+        iconColor: 'linear-gradient(135deg, #26c6da 0%, #00acc1 100%)',
+        icon: (
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
+          </svg>
+        ),
+      },
+      '구단 응원하기': {
+        title: '가족 응원 데이',
+        description: '함께 경기 관람하며 응원하기',
+        tag: '구단 응원하기',
+        points: 40,
+        iconColor: 'linear-gradient(135deg, #ef5350 0%, #e53935 100%)',
+        icon: (
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+          </svg>
+        ),
+      },
+      '공예/DIY': {
+        title: '가족 공예 데이',
+        description: '함께 작품 만들며 시간 보내기',
+        tag: '공예/DIY',
+        points: 45,
+        iconColor: 'linear-gradient(135deg, #66bb6a 0%, #4caf50 100%)',
+        icon: (
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M9.64 7.64c.23-.5.36-1.05.36-1.64 0-2.21-1.79-4-4-4S2 3.79 2 6s1.79 4 4 4c.59 0 1.14-.13 1.64-.36L10 12l-2.36 2.36C7.14 14.13 6.59 14 6 14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4c0-.59-.13-1.14-.36-1.64L12 14l7 7h3v-1L9.64 7.64zM6 8c-1.1 0-2-.89-2-2s.9-2 2-2 2 .89 2 2-.9 2-2 2zm0 12c-1.1 0-2-.89-2-2s.9-2 2-2 2 .89 2 2-.9 2-2 2zm6-7.5c-.28 0-.5-.22-.5-.5s.22-.5.5-.5.5.22.5.5-.22.5-.5.5zM19 3l-6 6 2 2 6-6V3z" />
+          </svg>
+        ),
+      },
+      '맛집 혹은 카페 탐방': {
+        title: '가족 맛집 탐방',
+        description: '함께 맛있는 음식 즐기기',
+        tag: '맛집 혹은 카페 탐방',
+        points: 40,
+        iconColor: 'linear-gradient(135deg, #ffa726 0%, #fb8c00 100%)',
+        icon: (
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8.1 13.34l2.83-2.83L3.91 3.5c-1.56 1.56-1.56 4.09 0 5.66l4.19 4.18zm6.78-1.81c1.53.71 3.68.21 5.27-1.38 1.91-1.91 2.28-4.65.81-6.12-1.46-1.46-4.2-1.1-6.12.81-1.59 1.59-2.09 3.74-1.38 5.27L3.7 19.87l1.41 1.41L12 14.41l6.88 6.88 1.41-1.41L13.41 13l1.47-1.47z" />
+          </svg>
+        ),
+      },
     };
 
     const defaultMemory = {
       title: '가족 활동',
       description: '함께 즐거운 시간 보내기',
+      tag: '일반',
       points: 40,
       iconColor: 'linear-gradient(135deg, #9b7fff 0%, #7b5fff 100%)',
       icon: (
@@ -467,59 +560,88 @@ const FamilyMemoryFeed: React.FC = () => {
       ),
     };
 
+    const convertedCommonPref: CommonPreference | undefined = commonPref ? {
+      taste: commonPref.taste,
+      members: commonPref.members.map(m => ({
+        id: typeof m.id === 'number' ? m.id : Number(m.id) || 0,
+        name: m.name,
+        role: m.relation || '',
+        avatar: m.avatar,
+        tastes: m.interests || [],
+      })),
+    } : undefined;
+
     return {
-      id: `memory-${taste}`,
-      ...(tasteMap[taste] || defaultMemory),
-      commonPreference: commonPref,
+      id: `memory-${interest}`,
+      ...(interestMap[interest] || defaultMemory),
+      commonPreference: convertedCommonPref,
     };
   };
 
-  // 공통 취향이 있을 때 추천 추억 생성 (공통 취향 하나당 추억 하나)
-  const recommendedMemoriesWithPreferences: RecommendedMemory[] = useMemo(() => {
-    return commonPreferences.map((commonPref) => {
-      return getRecommendedMemoriesByTaste(commonPref.taste, commonPref);
-    });
-  }, [commonPreferences]);
+  // 추천 추억 생성 (총 3개)
+  const recommendedMemories: RecommendedMemory[] = useMemo(() => {
+    if (interestMembers.length < 2) {
+      // 구성원이 2명 미만이면 기본 추억 3개
+      return [
+        getRecommendedMemoriesByInterest('영화/드라마/연극 감상'),
+        getRecommendedMemoriesByInterest('요리하기'),
+        getRecommendedMemoriesByInterest('여행'),
+      ];
+    }
 
-  // 공통 취향이 없을 때 추천 추억
-  const recommendedMemoriesWithoutPreferences: RecommendedMemory[] = [
-    {
-      id: '1',
-      title: '가족 영화 감상',
-      description: '함께 영화 보고 감상평 나누기',
-      points: 50,
-      iconColor: 'linear-gradient(135deg, #9b7fff 0%, #7b5fff 100%)',
-      icon: (
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4h-2l2 4h-3l-2-4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z" />
-        </svg>
-      ),
-    },
-    {
-      id: '2',
-      title: '주말 산책',
-      description: '공원이나 산책로 함께 걷기',
-      points: 40,
-      iconColor: 'linear-gradient(135deg, #66bb6a 0%, #4caf50 100%)',
-      icon: (
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7" />
-        </svg>
-      ),
-    },
-    {
-      id: '3',
-      title: '가족 쿠킹 클래스',
-      description: '새로운 요리 함께 만들기',
-      points: 50,
-      iconColor: 'linear-gradient(135deg, #ff8a65 0%, #ff7043 100%)',
-      icon: (
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M8.1 13.34l2.83-2.83L3.91 3.5c-1.56 1.56-1.56 4.09 0 5.66l4.19 4.18zm6.78-1.81c1.53.71 3.68.21 5.27-1.38 1.91-1.91 2.28-4.65.81-6.12-1.46-1.46-4.2-1.1-6.12.81-1.59 1.59-2.09 3.74-1.38 5.27L3.7 19.87l1.41 1.41L12 14.41l6.88 6.88 1.41-1.41L13.41 13l1.47-1.47z" />
-        </svg>
-      ),
-    },
-  ];
+    const result: RecommendedMemory[] = [];
+
+    if (hasCommonPreferences && topCommon.interest) {
+      // 공통 취향이 있는 경우: 공통 취향 (1) + 개별 취향 (2) = 총 3개
+      // 1. 공통 취향 추억 추가
+      result.push(getRecommendedMemoriesByInterest(topCommon.interest, {
+        taste: topCommon.interest,
+        members: topCommon.members,
+      }));
+
+      // 2. 개별 취향 추억 추가 (공통 취향 제외, 최대 2개)
+      const individualInterests = new Set<string>();
+      interestMembers.forEach(member => {
+        (member.interests || []).forEach(interest => {
+          if (interest !== topCommon.interest) {
+            individualInterests.add(interest);
+          }
+        });
+      });
+
+      const individualArray = Array.from(individualInterests).slice(0, 2);
+      individualArray.forEach(interest => {
+        result.push(getRecommendedMemoriesByInterest(interest));
+      });
+    } else {
+      // 공통 취향이 없는 경우: 개별 취향 (2) + 미선택 취향 (1) = 총 3개
+      // 1. 개별 취향 추억 추가 (최대 2개)
+      const individualInterests = new Set<string>();
+      interestMembers.forEach(member => {
+        (member.interests || []).forEach(interest => {
+          individualInterests.add(interest);
+        });
+      });
+
+      const individualArray = Array.from(individualInterests).slice(0, 2);
+      individualArray.forEach(interest => {
+        result.push(getRecommendedMemoriesByInterest(interest));
+      });
+
+      // 2. 미선택 취향 추억 추가 (1개)
+      const selectedInterests = new Set(individualInterests);
+      const unselectedInterests = ALL_INTERESTS.filter(interest => !selectedInterests.has(interest));
+      if (unselectedInterests.length > 0) {
+        result.push(getRecommendedMemoriesByInterest(unselectedInterests[0]));
+      }
+    }
+
+    // 정확히 3개가 되도록 조정
+    return result.slice(0, 3);
+  }, [interestMembers, hasCommonPreferences, topCommon]);
+
+  // 추천 추억 목록 (총 3개)
+  const displayRecommendedMemories = recommendedMemories;
 
   const handleAddMemory = () => {
     setIsAddMemoryModalOpen(true);
@@ -647,7 +769,16 @@ const FamilyMemoryFeed: React.FC = () => {
   ];
 
   const handleParticipate = (challengeId: string) => {
-    console.log('챌린지 참여:', challengeId);
+    const challenge = challenges.find(c => c.id === challengeId);
+    if (challenge) {
+      // 챌린지 제목을 추억 추가 폼에 설정
+      setNewMemory(prev => ({
+        ...prev,
+        title: challenge.title,
+        category: challenge.category,
+      }));
+      setIsAddMemoryModalOpen(true);
+    }
   };
 
   // 탭별 메모리 필터링
@@ -739,7 +870,6 @@ const FamilyMemoryFeed: React.FC = () => {
                 <S.ChallengeCategory>{challenge.category}</S.ChallengeCategory>
                 <S.ChallengeTitle>{challenge.title}</S.ChallengeTitle>
                 <S.ChallengeFooter>
-                  <S.PointsTag>{challenge.points} 포인트</S.PointsTag>
                   <S.ParticipateButton onClick={() => handleParticipate(challenge.id)}>
                     참여하기 →
                   </S.ParticipateButton>
@@ -893,7 +1023,7 @@ const FamilyMemoryFeed: React.FC = () => {
               가족 구성원들의 공통 취향을 바탕으로 특별한 추억을 만들어보세요
             </S.ModalDescription>
             <S.RecommendedMemoriesList>
-              {(hasCommonPreferences ? recommendedMemoriesWithPreferences : recommendedMemoriesWithoutPreferences).map((memory) => (
+              {displayRecommendedMemories.map((memory) => (
                 <S.RecommendedMemoryCard key={memory.id}>
                   <S.RecommendedMemoryIcon color={memory.iconColor}>
                     {memory.icon}
@@ -929,7 +1059,6 @@ const FamilyMemoryFeed: React.FC = () => {
                     )}
                   </S.RecommendedMemoryContent>
                   <S.RecommendedMemoryFooter>
-                    <S.RecommendedPointsTag>{memory.points} 포인트</S.RecommendedPointsTag>
                     <S.SelectButton onClick={() => handleSelectMemory(memory.id)}>
                       선택하기 →
                     </S.SelectButton>

@@ -1,14 +1,50 @@
+import React, { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import * as S from "./index.styles.tsx";
 import { useCreateFamilyCode, useVerifyFamilyCode } from "../../apis/hooks.ts";
 
+interface Member {
+  id: number;
+  name: string;
+  role: string;
+  avatar: string;
+  tastes?: Array<{ icon: string; text: string }>;
+  selectedActivities?: Array<{ id: string; label: string; icon: string }>;
+  dayNumber?: number;
+  dayOfWeek?: string;
+}
+
 const MainPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { members } = (location.state as { members?: Member[] }) || {};
+  
+  const [familyCode, setFamilyCode] = useState(() => {
+    const stored = localStorage.getItem('familyCode');
+    return stored || "76EVBPSH";
+  });
   const [familyCode, setFamilyCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [codeInput, setCodeInput] = useState("");
 
+  // 새 코드 생성 (8자리로 생성하지만 사용자는 2자리 이상 입력 가능)
+  const handleGenerateCode = () => {
+    if (isGenerating) return;
+    setIsGenerating(true);
+
+    setTimeout(() => {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      let newCode = "";
+      // 8자리로 생성하지만, 사용자는 원하는 길이로 입력 가능
+      for (let i = 0; i < 8; i++) {
+        newCode += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      setFamilyCode(newCode);
+      localStorage.setItem('familyCode', newCode);
+      setIsGenerating(false);
+    }, 400);
   // API 훅
   const createFamilyCodeMutation = useCreateFamilyCode();
   const { data: verifyData, isLoading: isVerifying } = useVerifyFamilyCode(
@@ -125,6 +161,12 @@ const handleKakaoShare = () => {
         {/* Input + 버튼들 */}
         <S.CodeInputRow>
   <S.Input
+    value={familyCode}
+    onChange={(e) => {
+      const newCode = e.target.value.toUpperCase();
+      setFamilyCode(newCode);
+      localStorage.setItem('familyCode', newCode);
+    }}
     value={codeInput}
     maxLength={8}
     onChange={(e) => {
@@ -182,6 +224,8 @@ const handleKakaoShare = () => {
 
       {/* 다음 버튼 */}
 <S.NextButton onClick={() => {
+  // setup3에서 받은 members를 profile로 전달
+  navigate("/profile", { state: { members: members || [] } });
   // localStorage에서 가족 구성원 데이터 가져오기
   try {
     const storedMembers = localStorage.getItem('familyMembers');

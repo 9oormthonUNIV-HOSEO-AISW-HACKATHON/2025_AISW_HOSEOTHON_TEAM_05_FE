@@ -55,12 +55,24 @@ const FamilyConnectPage: React.FC = () => {
   const [showAvatarPopup, setShowAvatarPopup] = useState(false);
 
   const [editTarget, setEditTarget] = useState<Member | null>(null);
+  
+  // 가족 코드 가져오기 (localStorage 또는 기본값)
+  const [familyCode] = useState(() => {
+    const stored = localStorage.getItem('familyCode');
+    return stored || '76EVBPSH';
+  });
 
   /* =========================================
       🔥 프로필 삭제 기능
   ========================================= */
   const handleDelete = () => {
     if (!editTarget) return;
+
+    // 최소 2명 이상이어야 삭제 가능
+    if (members.length <= 2) {
+      alert("최소 2명의 가족 구성원이 필요합니다. 삭제할 수 없습니다.");
+      return;
+    }
 
     const updated = members.filter((m) => m.id !== editTarget.id);
     setMembers(updated);
@@ -93,15 +105,19 @@ const FamilyConnectPage: React.FC = () => {
   const saveEdit = () => {
     if (!editTarget) return;
 
-    setMembers((prev) =>
-      prev.map((m) => (m.id === editTarget.id ? editTarget : m))
+    // 즉시 반영
+    const updatedMembers = members.map((m) => 
+      m.id === editTarget.id ? editTarget : m
     );
+    setMembers(updatedMembers);
 
+    // 현재 멤버도 즉시 업데이트
     if (currentMember.id === editTarget.id) {
       setCurrentMember(editTarget);
     }
 
     setShowEditPopup(false);
+    setShowEditSelectPopup(false);
   };
 
   return (
@@ -116,7 +132,7 @@ const FamilyConnectPage: React.FC = () => {
         <S.HeaderButtons>
           <S.SmallButton onClick={() => setShowSwitchPopup(true)}>프로필 전환</S.SmallButton>
           <S.SmallButton onClick={() => setShowEditSelectPopup(true)}>
-            프로필 변경
+            프로필 편집
           </S.SmallButton>
         </S.HeaderButtons>
       </S.Header>
@@ -159,6 +175,7 @@ const FamilyConnectPage: React.FC = () => {
       {showSwitchPopup && (
         <S.PopupOverlay onClick={() => setShowSwitchPopup(false)}>
           <S.PopupBox onClick={(e) => e.stopPropagation()}>
+            <S.CloseButton onClick={() => setShowSwitchPopup(false)}>×</S.CloseButton>
             <S.PopupTitle>누구의 프로필을 사용하시겠어요?</S.PopupTitle>
 
             <S.PopupGrid>
@@ -171,16 +188,17 @@ const FamilyConnectPage: React.FC = () => {
                     setShowSwitchPopup(false);
                   }}
                 >
+                  <S.Checkbox selected={currentMember.id === m.id}>
+                    {currentMember.id === m.id && "✓"}
+                  </S.Checkbox>
                   <S.PopupAvatar>{m.avatar}</S.PopupAvatar>
                   <S.PopupName>{m.name}</S.PopupName>
                   <S.PopupRole>{m.role}</S.PopupRole>
-
-                  {currentMember.id === m.id && <S.SelectCheck>✔</S.SelectCheck>}
                 </S.PopupCard>
               ))}
             </S.PopupGrid>
 
-            <S.PopupClose>닫기</S.PopupClose>
+            <S.PopupClose onClick={() => setShowSwitchPopup(false)}>닫기</S.PopupClose>
           </S.PopupBox>
         </S.PopupOverlay>
       )}
@@ -192,6 +210,7 @@ const FamilyConnectPage: React.FC = () => {
       {showEditSelectPopup && (
         <S.PopupOverlay onClick={() => setShowEditSelectPopup(false)}>
           <S.PopupBox onClick={(e) => e.stopPropagation()}>
+            <S.CloseButton onClick={() => setShowEditSelectPopup(false)}>×</S.CloseButton>
             <S.PopupTitle>편집할 프로필을 선택하세요</S.PopupTitle>
 
             <S.PopupGrid>
@@ -204,7 +223,7 @@ const FamilyConnectPage: React.FC = () => {
               ))}
             </S.PopupGrid>
 
-            <S.PopupClose>닫기</S.PopupClose>
+            <S.PopupClose onClick={() => setShowEditSelectPopup(false)}>닫기</S.PopupClose>
           </S.PopupBox>
         </S.PopupOverlay>
       )}
@@ -216,18 +235,21 @@ const FamilyConnectPage: React.FC = () => {
       {showEditPopup && editTarget && (
         <S.PopupOverlay onClick={() => setShowEditPopup(false)}>
           <S.EditPopup onClick={(e) => e.stopPropagation()}>
+            <S.CloseButton onClick={() => setShowEditPopup(false)}>×</S.CloseButton>
             <S.PopupTitle>프로필 편집</S.PopupTitle>
 
             <S.EditAvatarBox onClick={() => setShowAvatarPopup(true)}>
               <S.EditAvatar>{editTarget.avatar}</S.EditAvatar>
-              <div style={{ marginTop: 8, fontSize: 14 }}>아바타 클릭하여 변경</div>
+              <S.AvatarHint>아바타를 클릭하여 변경</S.AvatarHint>
             </S.EditAvatarBox>
 
+            <S.EditLabel>이름</S.EditLabel>
             <S.EditInput
               value={editTarget.name}
               onChange={(e) => setEditTarget({ ...editTarget, name: e.target.value })}
             />
 
+            <S.EditLabel>역할</S.EditLabel>
             <S.RoleGrid>
               {roles.map((r) => (
                 <S.RoleButton
@@ -242,7 +264,12 @@ const FamilyConnectPage: React.FC = () => {
 
             {/* 🔥 삭제 기능 */}
             <S.EditButtonRow>
-              <S.DeleteButton onClick={handleDelete}>삭제</S.DeleteButton>
+              <S.DeleteButton 
+                onClick={handleDelete}
+                disabled={members.length <= 2}
+              >
+                🗑️ 삭제
+              </S.DeleteButton>
               <S.SaveButton onClick={saveEdit}>완료</S.SaveButton>
             </S.EditButtonRow>
           </S.EditPopup>
@@ -256,12 +283,14 @@ const FamilyConnectPage: React.FC = () => {
       {showAvatarPopup && editTarget && (
         <S.PopupOverlay onClick={() => setShowAvatarPopup(false)}>
           <S.AvatarPopup onClick={(e) => e.stopPropagation()}>
+            <S.CloseButton onClick={() => setShowAvatarPopup(false)}>×</S.CloseButton>
             <S.PopupTitle>아바타 선택</S.PopupTitle>
 
             <S.AvatarGrid>
               {avatarList.map((av) => (
                 <S.AvatarItem
                   key={av}
+                  selected={editTarget.avatar === av}
                   onClick={() => {
                     setEditTarget({ ...editTarget, avatar: av });
                     setShowAvatarPopup(false);
@@ -272,10 +301,16 @@ const FamilyConnectPage: React.FC = () => {
               ))}
             </S.AvatarGrid>
 
-            <S.PopupClose>닫기</S.PopupClose>
+            <S.PopupClose onClick={() => setShowAvatarPopup(false)}>닫기</S.PopupClose>
           </S.AvatarPopup>
         </S.PopupOverlay>
       )}
+
+      {/* 가족 코드 표시 */}
+      <S.FamilyCodeSection>
+        <S.FamilyCodeLabel>가족 코드</S.FamilyCodeLabel>
+        <S.FamilyCodeValue>{familyCode}</S.FamilyCodeValue>
+      </S.FamilyCodeSection>
     </S.PageWrapper>
   );
 };

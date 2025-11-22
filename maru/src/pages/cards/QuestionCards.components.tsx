@@ -13,7 +13,7 @@ export const Header: React.FC = () => {
         <span>뒤로</span>
         </S.BackButton>
 
-        <S.RecordButton>추억 기록하기</S.RecordButton>
+        <S.RecordButton onClick={() => navigate("/feed")}>추억 기록하기</S.RecordButton>
     </S.HeaderBar>
     );
 };
@@ -23,7 +23,7 @@ export const IntroSection: React.FC = () => {
     return (
     <S.IntroSection>
         <S.IntroIconWrapper>💬</S.IntroIconWrapper>
-        <S.IntroTitle>대화 시작 질문 카드</S.IntroTitle>
+        <S.IntroTitle>대화 시작 카드</S.IntroTitle>
         <S.IntroSubtitle>다양한 주제로 대화를 시작해보세요</S.IntroSubtitle>
     </S.IntroSection>
     );
@@ -34,26 +34,35 @@ export const QuestionCard = ({
     index,
     total,
     question,
+    interest,
+    isCommon,
+    icon,
     onShuffle,
 }: {
     index: number;
     total: number;
     question: string;
+    interest: string | null;
+    isCommon: boolean;
+    icon: string | null;
     onShuffle: () => void;
 }) => {
     return (
-    <S.CardSection>
+    <S.CardSection $isCommon={isCommon}>
         <S.CardHeader>
-        <S.CategoryIcon>🎬</S.CategoryIcon>
+        <S.CategoryIcon>
+            {icon || "💬"}
+        </S.CategoryIcon>
         <S.QuestionMeta>
+            {isCommon && <S.CommonBadge>공통 취향</S.CommonBadge>}
             <span>✨</span>
             <S.QuestionIndex>
-            질문 {index + 1} / {total}
+            카드 {index + 1} / {total}
             </S.QuestionIndex>
         </S.QuestionMeta>
         </S.CardHeader>
 
-        <S.QuestionText>{question}</S.QuestionText>
+        <S.QuestionText $isCommon={isCommon}>{question}</S.QuestionText>
 
         <S.ShuffleButton onClick={onShuffle}>🔄 다른 질문</S.ShuffleButton>
     </S.CardSection>

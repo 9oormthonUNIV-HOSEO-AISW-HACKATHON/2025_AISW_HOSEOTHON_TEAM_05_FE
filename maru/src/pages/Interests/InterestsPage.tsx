@@ -133,8 +133,26 @@ const InterestsPage: React.FC = () => {
 
   /* ------------------- 메인 페이지 ------------------- */
 
-    const handleOpenCards = () => navigate("/cards");
-    const handleOpenRecord = () => navigate("/timeline");
+    const handleOpenCards = () => {
+        // 취향 데이터를 cards 페이지로 전달
+        navigate("/cards", {
+            state: {
+                members: safeMembers,
+                topCommon: topCommon,
+                hasCommon: hasCommon,
+            }
+        });
+    };
+    const handleOpenRecord = () => {
+        // 취향 데이터를 feed 페이지로 전달
+        navigate("/feed", {
+            state: {
+                members: safeMembers,
+                topCommon: topCommon,
+                hasCommon: hasCommon,
+            }
+        });
+    };
 
 return (
     <S.PageWrapper>

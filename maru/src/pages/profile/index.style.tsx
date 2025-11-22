@@ -140,6 +140,30 @@ export const PopupBox = styled.div`
   padding: 30px;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  position: relative;
+`;
+
+export const CloseButton = styled.button`
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  font-size: 28px;
+  color: #8b739e;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.15s ease-out;
+  line-height: 1;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
 `;
 
 export const PopupTitle = styled.h2`
@@ -147,6 +171,7 @@ export const PopupTitle = styled.h2`
   font-size: 20px;
   font-weight: 700;
   margin-bottom: 24px;
+  padding-right: 40px;
 `;
 
 export const PopupGrid = styled.div`
@@ -166,12 +191,33 @@ export const PopupCard = styled.div<{ selected: boolean }>`
   position: relative;
   cursor: pointer;
   transition: 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 
   transform: ${({ selected }) => (selected ? "scale(1.06)" : "scale(1)")};
 
   &:hover {
     transform: scale(1.06);
   }
+`;
+
+export const Checkbox = styled.div<{ selected: boolean }>`
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  border: 2px solid ${({ selected }) => (selected ? "#ffffff" : "rgba(255, 255, 255, 0.5)")};
+  border-radius: 4px;
+  background: ${({ selected }) => (selected ? "#ffffff" : "transparent")};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #bb85ff;
+  font-size: 16px;
+  font-weight: 700;
 `;
 
 export const PopupAvatar = styled.div`
@@ -206,10 +252,39 @@ export const PopupClose = styled.button`
   background: #f3f3ff;
   font-size: 15px;
   cursor: pointer;
+  transition: 0.2s;
 
   &:hover {
     background: #e0e1ff;
   }
+`;
+
+/* ============================= */
+/*         FAMILY CODE SECTION        */
+/* ============================= */
+
+export const FamilyCodeSection = styled.div`
+  margin-top: 40px;
+  padding: 20px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
+  text-align: center;
+`;
+
+export const FamilyCodeLabel = styled.div`
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+  font-weight: 500;
+`;
+
+export const FamilyCodeValue = styled.div`
+  font-size: 24px;
+  font-weight: 700;
+  color: #bb85ff;
+  letter-spacing: 2px;
+  font-family: monospace;
 `;
 
 /* ============================= */
@@ -223,6 +298,7 @@ export const EditPopup = styled.div`
   padding: 30px 28px;
   border-radius: 18px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  position: relative;
 `;
 
 export const EditAvatarBox = styled.div`
@@ -244,6 +320,20 @@ export const EditAvatar = styled.div`
   align-items: center;
 `;
 
+export const AvatarHint = styled.div`
+  margin-top: 8px;
+  font-size: 14px;
+  color: #666;
+`;
+
+export const EditLabel = styled.label`
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+`;
+
 export const EditInput = styled.input`
   width: 100%;
   padding: 14px 15px;
@@ -251,6 +341,7 @@ export const EditInput = styled.input`
   border: 1px solid #ddd;
   margin-bottom: 18px;
   font-size: 15px;
+  box-sizing: border-box;
 `;
 
 export const RoleGrid = styled.div`
@@ -288,6 +379,20 @@ export const DeleteButton = styled.button`
   border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: 0.2s;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:hover:not(:disabled) {
+    background: #ffd0d0;
+  }
 `;
 
 export const SaveButton = styled.button`
@@ -312,6 +417,7 @@ export const AvatarPopup = styled.div`
   padding: 30px;
   border-radius: 18px;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.17);
+  position: relative;
 `;
 
 export const AvatarGrid = styled.div`
@@ -321,16 +427,17 @@ export const AvatarGrid = styled.div`
   margin-bottom: 20px;
 `;
 
-export const AvatarItem = styled.div`
+export const AvatarItem = styled.div<{ selected?: boolean }>`
   font-size: 42px;
-  background: #faf7ff;
+  background: ${({ selected }) => (selected ? "linear-gradient(135deg, #ffb4e6 0%, #bb85ff 100%)" : "#faf7ff")};
   padding: 18px 0;
   border-radius: 12px;
   cursor: pointer;
   text-align: center;
   transition: 0.15s;
+  border: ${({ selected }) => (selected ? "2px solid #bb85ff" : "2px solid transparent")};
 
   &:hover {
-    background: #ebdfff;
+    background: ${({ selected }) => (selected ? "linear-gradient(135deg, #ffb4e6 0%, #bb85ff 100%)" : "#ebdfff")};
   }
 `;
