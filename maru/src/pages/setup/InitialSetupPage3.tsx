@@ -66,6 +66,8 @@ const InitialSetupPage3: React.FC = () => {
     if (currentIndex < processedMembers.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
+      // localStorage에 가족 구성원 데이터 저장
+      localStorage.setItem('familyMembers', JSON.stringify(processedMembers));
       navigate("/profile", { state: { members: processedMembers } });
     }
   };
