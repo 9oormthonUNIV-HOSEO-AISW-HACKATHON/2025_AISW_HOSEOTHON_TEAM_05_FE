@@ -112,13 +112,13 @@ const FamilyConnectPage: React.FC = () => {
           <S.CardDesc>가족 구성원의 취향을 분석해 공통 관심사 TOP3 제공</S.CardDesc>
         </S.Card>
 
-        <S.Card onClick={() => navigate("/conversation", { state: { members } })}>
+        <S.Card onClick={() => navigate("/cards")}>
           <S.CardIcon>💬</S.CardIcon>
           <S.CardTitle>대화 시작 카드</S.CardTitle>
           <S.CardDesc>공통 취향 기반 맞춤형 대화 질문 제공</S.CardDesc>
         </S.Card>
 
-        <S.Card onClick={() => navigate("/timeline", { state: { members } })}>
+        <S.Card onClick={() => navigate("/conversation", { state: { members } })}>
           <S.CardIcon>📸</S.CardIcon>
           <S.CardTitle>추억 타임라인</S.CardTitle>
           <S.CardDesc>가족과의 기록을 모아두는 추억 보관함</S.CardDesc>
