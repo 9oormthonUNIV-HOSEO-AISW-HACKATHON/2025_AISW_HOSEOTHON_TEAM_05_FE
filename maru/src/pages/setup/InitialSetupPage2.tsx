@@ -2,27 +2,30 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as S from "./InitialSetupPage2.style.ts";
 
+type Taste = {
+  icon: string;
+  text: string;
+};
+
 interface Member {
   id: number;
   name: string;
   role: string;
   avatar: string;
-  tastes?: string[]; // 구성원이 선택한 취향
+  tastes?: Taste[]; // 구성원이 선택한 취향 (아이콘 + 텍스트)
 }
 
-const tasteOptions = [
-  { icon: "🎬", text: "영화 감상" },
+const tasteOptions: Taste[] = [
+  { icon: "🎬", text: "영화/드라마/연극 감상" },
   { icon: "🎵", text: "음악 듣기" },
   { icon: "🍳", text: "요리하기" },
-  { icon: "🚶‍♂️", text: "산책하기" },
-  { icon: "📚", text: "독서" },
+  { icon: "🚶‍♂️", text: "엑티비티한 활동" },
+  { icon: "📚", text: "자기개발" },
   { icon: "🎮", text: "게임" },
   { icon: "✈️", text: "여행" },
-  { icon: "⚽", text: "운동" },
+  { icon: "⚽", text: "구단 응원하기" },
   { icon: "✂️", text: "공예/DIY" },
-  { icon: "🌱", text: "가드닝" },
-  { icon: "☕", text: "카페 가기" },
-  { icon: "📺", text: "TV/드라마" },
+  { icon: "🌱", text: "맛집 혹은 카페 탐방" },
 ];
 
 const InitialSetupPage2: React.FC = () => {
@@ -35,22 +38,23 @@ const InitialSetupPage2: React.FC = () => {
   const [index, setIndex] = useState(0);
 
   /** 현재 구성원의 이전 선택이 있으면 복원 */
-  const [tastes, setTastes] = useState<string[]>(members[0].tastes ?? []);
+  const [tastes, setTastes] = useState<Taste[]>(members[0].tastes ?? []);
 
   const current = members[index];
 
   /** 취향 선택 토글 */
-  const toggleTaste = (taste: string) => {
-    setTastes((prev) =>
-      prev.includes(taste)
-        ? prev.filter((t) => t !== taste)
-        : [...prev, taste]
-    );
+  const toggleTaste = (taste: Taste) => {
+    setTastes((prev) => {
+      const exists = prev.some((t) => t.text === taste.text);
+      return exists
+        ? prev.filter((t) => t.text !== taste.text)
+        : [...prev, taste];
+    });
   };
 
   /** 다음 구성원으로 이동 */
   const nextMember = () => {
-    // 현재 구성원에 취향 저장
+    // 현재 구성원에 취향 저장 (Taste[] 그대로)
     members[index].tastes = tastes;
 
     // 마지막 구성원이면 Setup3로 이동
@@ -84,7 +88,6 @@ const InitialSetupPage2: React.FC = () => {
   return (
     <S.PageWrapper>
       <S.Container>
-
         {/* 헤더 */}
         <S.Header>
           <S.BackBtn disabled={index === 0} onClick={handleBack}>
@@ -117,8 +120,8 @@ const InitialSetupPage2: React.FC = () => {
               {tasteOptions.map((opt) => (
                 <S.TasteBtn
                   key={opt.text}
-                  selected={tastes.includes(opt.text)}
-                  onClick={() => toggleTaste(opt.text)}
+                  selected={tastes.some((t) => t.text === opt.text)}
+                  onClick={() => toggleTaste(opt)}
                 >
                   <span>{opt.icon}</span>
                   <span>{opt.text}</span>
@@ -134,7 +137,6 @@ const InitialSetupPage2: React.FC = () => {
             {index < members.length - 1 ? "다음 구성원 →" : "완료 →"}
           </S.NextBtn>
         </S.Footer>
-
       </S.Container>
     </S.PageWrapper>
   );
