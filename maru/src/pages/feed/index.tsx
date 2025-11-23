@@ -102,15 +102,43 @@ const FamilyMemoryFeed: React.FC = () => {
   const [interestMembers, setInterestMembers] = useState<MemberInterests[]>([]);
   
   useEffect(() => {
-    // location state에서 Interests 데이터 가져오기
+    // location state에서 데이터 가져오기
     const locationState = location.state as {
-      members?: MemberInterests[];
+      members?: Member[] | MemberInterests[];
       topCommon?: { interest: string | null; count: number; members: MemberInterests[] };
       hasCommon?: boolean;
     } | null;
 
     if (locationState?.members) {
-      setInterestMembers(locationState.members);
+      const stateMembers = locationState.members;
+      
+      // Member[] 타입인지 MemberInterests[] 타입인지 확인
+      if (stateMembers.length > 0 && 'tastes' in stateMembers[0]) {
+        // Member[] 타입인 경우 변환
+        const memberArray = stateMembers as Member[];
+        setMembers(memberArray);
+        const converted: MemberInterests[] = memberArray.map((m) => ({
+          id: m.id,
+          name: m.name,
+          relation: m.role,
+          avatar: m.avatar,
+          interests: m.tastes || [],
+        }));
+        setInterestMembers(converted);
+      } else {
+        // MemberInterests[] 타입인 경우 그대로 사용
+        const interestArray = stateMembers as MemberInterests[];
+        setInterestMembers(interestArray);
+        // Member 형식으로도 변환
+        const converted: Member[] = interestArray.map((m) => ({
+          id: typeof m.id === 'string' ? parseInt(m.id) : m.id,
+          name: m.name,
+          role: m.relation || '기타',
+          avatar: m.avatar,
+          tastes: m.interests,
+        }));
+        setMembers(converted);
+      }
     } else {
       // localStorage에서 가족 구성원 데이터 가져오기 (fallback)
       const storedMembers = localStorage.getItem('familyMembers');
